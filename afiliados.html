@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DIGIMarket Afiliados — Ganha em TON</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050508;--s1:#0d0d14;--s2:#12121c;--s3:#1a1a28;
+  --border:#242436;--border2:#323248;
+  --text:#eeeef8;--muted:#7070a0;--dim:#404060;
+  --green:#00e5a0;--green2:#00b87a;
+  --green-bg:rgba(0,229,160,.07);--green-bd:rgba(0,229,160,.2);
+  --gold:#ffd166;--gold-bg:rgba(255,209,102,.07);--gold-bd:rgba(255,209,102,.2);
+  --blue:#4d9fff;--blue-bg:rgba(77,159,255,.07);--blue-bd:rgba(77,159,255,.2);
+  --red:#ff5572;--red-bg:rgba(255,85,114,.07);--red-bd:rgba(255,85,114,.2);
+  --purple:#a78bfa;
+}
+body{background:var(--bg);color:var(--text);font-family:'Cabinet Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.bg-orb1{position:fixed;top:-20%;right:-10%;width:50vw;height:50vw;background:radial-gradient(circle,rgba(0,229,160,.05) 0%,transparent 65%);pointer-events:none;z-index:0}
+.bg-orb2{position:fixed;bottom:-20%;left:-10%;width:40vw;height:40vw;background:radial-gradient(circle,rgba(77,159,255,.04) 0%,transparent 65%);pointer-events:none;z-index:0}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;gap:8px}
+.logo{font-family:'Clash Display',sans-serif;font-weight:700;font-size:16px;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--text)}
+.logo-tag{background:var(--green);color:#000;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
+.nav-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.user-tag{font-size:12px;color:var(--muted);padding:4px 12px;background:var(--s2);border-radius:20px;border:1px solid var(--border)}
+
+/* ── Layout ── */
+.wrap{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:28px 20px}
+
+/* ── Botões ── */
+.btn{padding:10px 20px;border-radius:9px;border:none;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:500;transition:all .18s;display:inline-flex;align-items:center;gap:7px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-green{background:var(--green);color:#000;font-weight:700}
+.btn-green:hover:not(:disabled){background:#00ffb0;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-outline:hover:not(:disabled){background:var(--s3);border-color:var(--green)}
+.btn-ghost{background:transparent;border:none;color:var(--muted);font-family:'Cabinet Grotesk',sans-serif;font-size:13px;cursor:pointer;padding:6px 12px;border-radius:7px;transition:all .15s}
+.btn-ghost:hover{color:var(--text);background:var(--s3)}
+.btn-ghost.active{color:var(--text);background:var(--s3)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+
+/* ── Cards ── */
+.card{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-green{border-color:var(--green-bd);background:var(--green-bg)}
+.card-gold{border-color:var(--gold-bd);background:var(--gold-bg)}
+.card-blue{border-color:var(--blue-bd);background:var(--blue-bg)}
+
+/* ── Stat boxes ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-box{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.stat-val{font-family:'Clash Display',sans-serif;font-weight:700;font-size:26px;line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:5px}
+.stat-green .stat-val{color:var(--green)}
+.stat-gold .stat-val{color:var(--gold)}
+.stat-blue .stat-val{color:var(--blue)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;background:var(--s1);border-radius:10px;padding:3px;margin-bottom:22px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px;border:none;background:none;color:var(--muted);font-family:'Cabinet Grotesk',sans-serif;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;transition:all .15s}
+.tab.active{background:var(--s3);color:var(--text)}
+
+/* ── Forms ── */
+input,select,textarea{background:var(--s1);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:9px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;outline:none;width:100%;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--green)}
+.lbl{font-size:12px;color:var(--muted);margin-bottom:5px}
+.fr{margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center}
+.f1{flex:1}
+
+/* ── Tabela ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+td{padding:10px 12px;border-bottom:1px solid rgba(36,36,54,.6)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── Badges ── */
+.badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.b-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-bd)}
+.b-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.b-dim{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+
+/* ── Link box ── */
+.link-box{background:var(--s1);border:1px solid var(--green-bd);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.link-text{font-family:'Cabinet Grotesk',sans-serif;font-size:13px;color:var(--green);flex:1;word-break:break-all}
+.copy-btn{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;white-space:nowrap;transition:all .15s}
+.copy-btn:hover{background:var(--green);color:#000}
+
+/* ── Chart bars ── */
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:80px}
+.bar{flex:1;background:var(--green);border-radius:3px 3px 0 0;min-height:2px;transition:height .3s;opacity:.7}
+.bar:hover{opacity:1}
+
+/* ── Alert ── */
+.alert{padding:12px 14px;border-radius:9px;font-size:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.alert-green{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
+.alert-gold{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold)}
+.alert-red{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
+.alert-blue{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
+
+/* ── Spinner ── */
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Hero ── */
+.hero{text-align:center;padding:60px 20px 40px}
+.hero h1{font-family:'Clash Display',sans-serif;font-weight:700;font-size:48px;line-height:1.1;letter-spacing:-1px;margin-bottom:16px}
+.hero h1 span{color:var(--green)}
+.hero p{color:var(--muted);font-size:16px;max-width:500px;margin:0 auto 28px;line-height:1.7}
+.perks{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:0 auto}
+.perk{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left}
+.perk-icon{font-size:22px;margin-bottom:8px}
+.perk-title{font-family:'Clash Display',sans-serif;font-weight:600;font-size:14px;margin-bottom:4px}
+.perk-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── Divisor ── */
+.div{height:1px;background:var(--border);margin:16px 0}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal{background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:26px;width:100%;max-width:460px}
+.modal h2{font-family:'Clash Display',sans-serif;font-weight:700;font-size:20px;margin-bottom:4px}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;margin-top:-4px}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .perks{grid-template-columns:1fr}
+  .hero h1{font-size:32px}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-orb1"></div>
+<div class="bg-orb2"></div>
+
+<nav>
+  <a class="logo" href="https://is.gd/digimarket">
+    DIGI<span style="color:var(--green)">Market</span>
+    <span class="logo-tag">AFILIADOS</span>
+  </a>
+  <div class="nav-r" id="nav-r">
+    <button class="btn btn-outline btn-sm" onclick="goTo('login')">Entrar</button>
+    <button class="btn btn-green btn-sm" onclick="goTo('login')">Juntar-me Grátis</button>
+  </div>
+</nav>
+
+<div id="ct"></div>
+<div id="modal-ct"></div>
+
+<script>
+const SUPABASE_URL = 'https://tgslxwhmjbdkgwljhyxp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnc2x4d2htamJka2d3bGpoeXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzkyNTYsImV4cCI6MjA5MTQxNTI1Nn0.fLY-7PjMWpEPdZ-xa_UaL_FRINtsNjVOukXgVjzEkBk';
+const API = 'https://digimarket-h0vk.onrender.com';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let page = 'hero', user = null, afData = null, dtab = 'overview';
+
+// ── Auth ─────────────────────────────────────────────────────────────
+sb.auth.onAuthStateChange(async (event, session) => {
+  user = session?.user || null;
+  updateNav();
+  if (user && page === 'login') {
+    await loadAfiliado();
+    goTo('dashboard');
+  }
+});
+
+async function apiCall(method, path, body) {
+  const { data:{ session } } = await sb.auth.getSession();
+  const headers = { 'Content-Type':'application/json' };
+  if (session?.access_token) headers['Authorization'] = 'Bearer ' + session.access_token;
+  const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  return res.json();
+}
+
+async function loadAfiliado() {
+  try {
+    const r = await apiCall('GET', '/api/afiliado/me');
+    if (r.success) afData = r;
+  } catch(e) {}
+}
+
+function updateNav() {
+  const nr = document.getElementById('nav-r');
+  if (!nr) return;
+  if (user) {
+    nr.innerHTML = `
+      <span class="user-tag">👤 ${user.email.split('@')[0]}</span>
+      <button class="btn-ghost" onclick="doLogout()">Sair</button>`;
+  } else {
+    nr.innerHTML = `
+      <button class="btn btn-outline btn-sm" onclick="goTo('login')">Entrar</button>
+      <button class="btn btn-green btn-sm" onclick="goTo('login')">Juntar-me Grátis</button>`;
+  }
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  user = null; afData = null;
+  updateNav(); goTo('hero');
+}
+
+function goTo(p) {
+  page = p;
+  render();
+}
+
+function render() {
+  const fns = { hero:rHero, login:rLogin, dashboard:rDashboard, register:rRegister };
+  document.getElementById('ct').innerHTML = (fns[page] || rHero)();
+  afterRender();
+}
+
+function afterRender() {
+  if (page === 'dashboard') {
+    if (dtab === 'overview') setTimeout(renderOverviewData, 50);
+    if (dtab === 'comissoes') setTimeout(renderComissoesData, 50);
+    if (dtab === 'saques') setTimeout(renderSaquesData, 50);
+    if (dtab === 'lojas') setTimeout(renderLojasData, 50);
+    if (dtab === 'links') setTimeout(renderLinksData, 50);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// HERO / LANDING
+// ════════════════════════════════════════════════════════
+function rHero() {
+  return `<div class="wrap">
+  <div class="hero">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--green);margin-bottom:20px">
+      <span>●</span> Programa de Afiliados — Gratuito e Sem Limites
+    </div>
+    <h1>Ganha <span>TON</span><br>partilhando a DIGIMarket</h1>
+    <p>Partilha o teu link, converte lojistas e ganha comissão em criptomoeda. Sem custos, sem complicações.</p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:40px">
+      <button class="btn btn-green" style="padding:12px 28px;font-size:15px" onclick="goTo('login')">
+        Começar Grátis →
+      </button>
+      <button class="btn btn-outline" style="padding:12px 28px;font-size:15px" onclick="goTo('login')">
+        Já tenho conta
+      </button>
+    </div>
+    <div class="perks">
+      <div class="perk">
+        <div class="perk-icon">💰</div>
+        <div class="perk-title">20% por Lojista</div>
+        <div class="perk-desc">Ganha 20% do valor do plano activado por cada lojista que trouxeres.</div>
+      </div>
+      <div class="perk">
+        <div class="perk-icon">🏪</div>
+        <div class="perk-title">10% nas Compras</div>
+        <div class="perk-desc">Torna-te afiliado directo de uma loja e ganha 10% de cada compra feita.</div>
+      </div>
+      <div class="perk">
+        <div class="perk-icon">🔗</div>
+        <div class="perk-title">Link Mascarado</div>
+        <div class="perk-desc">O teu link de afiliado esconde o domínio original. Profissional e de confiança.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:40px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:24px">Como funciona</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      ${[
+        ['1','Regista-te','Cria a tua conta de afiliado gratuitamente em segundos.'],
+        ['2','Partilha o Link','Usa o teu link mascarado nas redes sociais, grupos ou amigos.'],
+        ['3','Converte','Quando alguém subscreve um plano, ganhas 20% automaticamente.'],
+        ['4','Saca em TON','Transfere os ganhos para qualquer carteira TON ou xRocket.'],
+      ].map(([n,t,d])=>`
+      <div class="card" style="text-align:center">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-bd);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-family:'Clash Display',sans-serif;font-weight:700;color:var(--green)">${n}</div>
+        <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:14px;margin-bottom:6px">${t}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">${d}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:48px;padding:40px;background:var(--s2);border:1px solid var(--green-bd);border-radius:16px">
+    <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:28px;margin-bottom:10px">
+      Pronto para começar a ganhar?
+    </div>
+    <div style="color:var(--muted);margin-bottom:20px">100% gratuito. Saque a partir do primeiro cliente convertido.</div>
+    <button class="btn btn-green" style="padding:13px 32px;font-size:15px" onclick="goTo('login')">
+      Criar Conta de Afiliado →
+    </button>
+  </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// LOGIN / REGISTO
+// ════════════════════════════════════════════════════════
+function rLogin() {
+  return `<div class="wrap" style="max-width:420px;padding-top:60px">
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:28px;margin-bottom:6px">Entrar / Criar Conta</div>
+    <div style="color:var(--muted);font-size:14px">Portal de Afiliados DIGIMarket</div>
+  </div>
+  <div class="card">
+    <div id="auth-msg"></div>
+    <div class="fr"><div class="lbl">E-mail</div><input id="ae" type="email" placeholder="o-teu@email.com"></div>
+    <div class="fr"><div class="lbl">Password</div><input id="ap" type="password" placeholder="mín. 6 caracteres"></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <button class="btn btn-green f1" onclick="doLogin()">Entrar</button>
+      <button class="btn btn-outline f1" onclick="doRegister()">Criar Conta</button>
+    </div>
+    <div id="auth-err" style="color:var(--red);font-size:12px;text-align:center"></div>
+    <div class="div"></div>
+    <div style="font-size:11px;color:var(--muted);text-align:center">
+      Ao criar conta concordas com os termos da DIGIMarket.<br>
+      <span style="cursor:pointer;color:var(--green)" onclick="goTo('hero')">← Voltar ao início</span>
+    </div>
+  </div>
+  </div>`;
+}
+
+async function doLogin() {
+  const e=document.getElementById('ae').value, p=document.getElementById('ap').value;
+  document.getElementById('auth-err').textContent='';
+  const { error } = await sb.auth.signInWithPassword({ email:e, password:p });
+  if (error) document.getElementById('auth-err').textContent = error.message;
+}
+
+async function doRegister() {
+  const e=document.getElementById('ae').value, p=document.getElementById('ap').value;
+  document.getElementById('auth-err').textContent='';
+  if (p.length<6) { document.getElementById('auth-err').textContent='Password deve ter pelo menos 6 caracteres'; return; }
+  const { error } = await sb.auth.signUp({ email:e, password:p });
+  if (error) document.getElementById('auth-err').textContent = error.message;
+  else document.getElementById('auth-msg').innerHTML = '<div class="alert alert-green">✓ Conta criada! Verifica o teu e-mail.</div>';
+}
+
+// ════════════════════════════════════════════════════════
+// REGISTO COMO AFILIADO
+// ════════════════════════════════════════════════════════
+function rRegister() {
+  return `<div class="wrap" style="max-width:480px;padding-top:50px">
+  <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:26px;margin-bottom:6px">Completar Registo</div>
+  <div style="color:var(--muted);font-size:14px;margin-bottom:24px">Configura o teu perfil de afiliado</div>
+  <div class="card">
+    <div class="fr"><div class="lbl">Nome (como aparece no painel)</div><input id="rn" placeholder="O teu nome ou apelido" value="${user?.email?.split('@')[0]||''}"></div>
+    <div class="fr">
+      <div class="lbl">Carteira TON para receber pagamentos</div>
+      <input id="rc" placeholder="UQ... ou EQ... (podes adicionar depois)">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Podes adicionar mais tarde nas configurações.</div>
+    </div>
+    <div id="reg-err" style="color:var(--red);font-size:12px;margin-bottom:10px"></div>
+    <button class="btn btn-green" style="width:100%" onclick="doRegisterAfiliado()">
+      Activar Conta de Afiliado →
+    </button>
+  </div>
+  </div>`;
+}
+
+async function doRegisterAfiliado() {
+  const nome = document.getElementById('rn')?.value;
+  const carteira_ton = document.getElementById('rc')?.value;
+  const r = await apiCall('POST', '/api/afiliado/registar', { nome, carteira_ton });
+  if (r.success) {
+    await loadAfiliado();
+    goTo('dashboard');
+  } else {
+    document.getElementById('reg-err').textContent = r.error || 'Erro ao registar';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════
+function rDashboard() {
+  if (!user) { goTo('login'); return ''; }
+  if (!afData) {
+    // Não é afiliado ainda
+    return `<div class="wrap" style="max-width:560px;padding-top:50px">
+    <div class="alert alert-gold"><span>⚡</span><span>A tua conta ainda não está activada como afiliado. Completa o registo abaixo.</span></div>
+    ${rRegister().replace('<div class="wrap" style="max-width:480px;padding-top:50px">','<div>')}
+    </div>`;
+  }
+
+  const af = afData.afiliado;
+  const stats = afData.stats;
+
+  return `<div class="wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:24px">Painel do Afiliado</div>
+      <div style="color:var(--muted);font-size:13px">Olá, ${af.nome||user.email.split('@')[0]} · Código: <span style="color:var(--green);font-weight:600">${af.codigo}</span></div>
+    </div>
+    <button class="btn btn-green btn-sm" onclick="openSaque()">💸 Sacar em TON</button>
+  </div>
+
+  <!-- Link de afiliado em destaque -->
+  <div class="card card-green" style="margin-bottom:22px">
+    <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🔗 O teu link mascarado</div>
+    <div class="link-box" style="margin-bottom:10px">
+      <div class="link-text" id="main-link">${API}/r/${af.codigo}</div>
+      <button class="copy-btn" onclick="copyLink('${API}/r/${af.codigo}','main-link-btn')" id="main-link-btn">Copiar</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted)">Este link redireciona para a DIGIMarket e regista o clique automaticamente. O domínio original fica oculto.</div>
+  </div>
+
+  <!-- Stats ── -->
+  <div class="stats-grid">
+    <div class="stat-box stat-blue">
+      <div class="stat-label">Cliques Totais</div>
+      <div class="stat-val">${stats.cliques.toLocaleString()}</div>
+      <div class="stat-sub">Nos teus links</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Conversões</div>
+      <div class="stat-val">${stats.conversoes}</div>
+      <div class="stat-sub">Lojistas pagantes</div>
+    </div>
+    <div class="stat-box stat-gold">
+      <div class="stat-label">Total Ganho</div>
+      <div class="stat-val" style="font-size:20px">${stats.total_ganho.toFixed(4)}</div>
+      <div class="stat-sub">TON acumulado</div>
+    </div>
+    <div class="stat-box stat-green">
+      <div class="stat-label">Saldo Disponível</div>
+      <div class="stat-val" style="font-size:20px">${stats.saldo_disponivel.toFixed(4)}</div>
+      <div class="stat-sub">TON para sacar</div>
+    </div>
+  </div>
+
+  <!-- Tabs ── -->
+  <div class="tabs">
+    ${[['overview','📊 Visão Geral'],['comissoes','💰 Comissões'],['saques','📤 Saques'],['lojas','🏪 Lojas Afiliadas'],['links','🔗 Links'],['config','⚙️ Config']].map(([t,l])=>`
+    <button class="tab ${dtab===t?'active':''}" onclick="dtab='${t}';render()">${l}</button>`).join('')}
+  </div>
+
+  <div id="tab-content"><div style="text-align:center;padding:30px"><div class="spin" style="width:30px;height:30px;border-width:3px"></div></div></div>
+  </div>`;
+}
+
+async function renderOverviewData() {
+  const el = document.getElementById('tab-content');
+  if (!el || !afData) return;
+  const { cliques_recentes } = afData;
+
+  // Agrupar cliques por dia (últimos 14 dias)
+  const dias = {};
+  for (let i=13;i>=0;i--) {
+    const d = new Date(Date.now()-i*86400000);
+    dias[d.toISOString().substring(0,10)] = 0;
+  }
+  cliques_recentes?.forEach(c => {
+    const d = c.criado_em.substring(0,10);
+    if (dias[d]!==undefined) dias[d]++;
+  });
+  const vals = Object.values(dias);
+  const maxV = Math.max(...vals, 1);
+
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px">Cliques — Últimos 14 dias</div>
+      <div style="font-size:12px;color:var(--muted)">${cliques_recentes?.length||0} no total</div>
+    </div>
+    <div class="chart-bars">
+      ${vals.map((v,i)=>`<div class="bar" title="${Object.keys(dias)[i]}: ${v} cliques" style="height:${Math.round(v/maxV*100)||2}%"></div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px">
+      <span>14 dias atrás</span><span>Hoje</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card card-gold">
+      <div style="font-size:12px;color:var(--gold);font-weight:600;margin-bottom:8px">ESTRUTURA DE COMISSÕES</div>
+      <div style="font-size:13px;line-height:1.8">
+        <div>🏆 <strong>20%</strong> por cada plano activado</div>
+        <div>🏪 <strong>10%</strong> por compra em loja afiliada</div>
+        <div>💸 Saque a partir do <strong>1.º cliente</strong></div>
+        <div>⚡ Pagamento em <strong>TON</strong> automático</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Resumo da conta</div>
+      ${[
+        ['Código afiliado', afData.afiliado.codigo],
+        ['Lojas afiliadas', afData.stats.lojas_afiliadas],
+        ['Total pago', afData.stats.saldo_pago.toFixed(4)+' TON'],
+        ['Carteira TON', afData.afiliado.carteira_ton ? afData.afiliado.carteira_ton.substring(0,16)+'...' : 'Não definida'],
+      ].map(([l,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="color:var(--muted)">${l}</span><span style="font-weight:500">${v}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+async function renderComissoesData() {
+  const el = document.getElementById('tab-content');
+  if (!el) return;
+  const comissoes = afData?.comissoes || [];
+  if (!comissoes.length) {
+    el.innerHTML = `<div class="alert alert-blue"><span>ℹ</span><span>Nenhuma comissão ainda. Partilha o teu link para começar a ganhar!</span></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="card" style="padding:0"><div class="tw"><table>
+    <thead><tr><th>Tipo</th><th>Descrição</th><th>Valor USD</th><th>Valor TON</th><th>Estado</th><th>Data</th></tr></thead>
+    <tbody>${comissoes.map(c=>`<tr>
+      <td><span class="badge ${c.tipo==='plano'?'b-gold':'b-blue'}">${c.tipo==='plano'?'📦 Plano':'🏪 Loja'}</span></td>
+      <td style="color:var(--muted);font-size:12px">${c.descricao}</td>
+      <td style="font-weight:500">$${c.valor_usd}</td>
+      <td style="color:var(--green);font-weight:600">${parseFloat(c.valor_ton).toFixed(6)} TON</td>
+      <td><span class="badge ${c.status==='disponivel'?'b-green':c.status==='pago'?'b-dim':'b-gold'}">${c.status}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${new Date(c.criado_em).toLocaleDateString('pt')}</td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+async function renderSaquesData() {
+  const el = document.getElementById('tab-content');
+  if (!el) return;
+  const saques = afData?.saques || [];
+  const saldo = afData?.stats?.saldo_disponivel || 0;
+  el.innerHTML = `
+  <div class="card card-green" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:12px;color:var(--green);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Saldo Disponível</div>
+        <div style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:32px">${saldo.toFixed(6)} <span style="font-size:16px;color:var(--muted)">TON</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Taxa de rede: 0.01 TON · Mínimo: 1 conversão efectuada</div>
+      </div>
+      <button class="btn btn-green" onclick="openSaque()" ${saldo<=0?'disabled':''}>💸 Sacar Agora</button>
+    </div>
+  </div>
+  ${saques.length ? `<div class="card" style="padding:0"><div class="tw"><table>
+    <thead><tr><th>Valor</th><th>Líquido</th><th>Carteira Destino</th><th>Estado</th><th>Data</th><th>TX Hash</th></tr></thead>
+    <tbody>${saques.map(s=>`<tr>
+      <td style="font-weight:500">${parseFloat(s.valor_ton).toFixed(4)} TON</td>
+      <td style="color:var(--green)">${parseFloat(s.valor_liquido).toFixed(4)} TON</td>
+      <td style="font-size:11px;color:var(--muted)">${s.carteira_destino?.substring(0,18)}...</td>
+      <td><span class="badge ${s.status==='pago'?'b-green':s.status==='falhado'?'b-red':'b-gold'}">${s.status}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${new Date(s.criado_em).toLocaleDateString('pt')}</td>
+      <td style="font-size:10px;color:var(--muted)">${s.tx_hash?s.tx_hash.substring(0,12)+'...':'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>` : `<div class="alert alert-blue"><span>ℹ</span><span>Nenhum saque ainda.</span></div>`}`;
+}
+
+async function renderLojasData() {
+  const el = document.getElementById('tab-content');
+  if (!el) return;
+  const lojas = afData?.lojas || [];
+  el.innerHTML = `
+  <div class="alert alert-gold" style="margin-bottom:16px">
+    <span>💡</span><span>Como afiliado directo de uma loja, ganhas <strong>10%</strong> de cada compra feita através do teu link nessa loja.</span>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px;margin-bottom:14px">Associar a uma Loja</div>
+    <div class="row">
+      <input class="f1" id="loja-slug" placeholder="Slug da loja (ex: minha-loja-abc123)">
+      <button class="btn btn-green btn-sm" onclick="associarLoja()">Associar</button>
+    </div>
+    <div id="loja-msg" style="font-size:12px;margin-top:8px"></div>
+  </div>
+  ${lojas.length ? `<div class="card" style="padding:0"><div class="tw"><table>
+    <thead><tr><th>Loja</th><th>Slug</th><th>Comissão</th><th>Link</th></tr></thead>
+    <tbody>${lojas.map(l=>`<tr>
+      <td style="font-weight:500">${l.lojistas?.nome_loja||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${l.lojistas?.slug||'—'}</td>
+      <td><span class="badge b-gold">10%</span></td>
+      <td><button class="copy-btn btn-sm" onclick="copyText('${API}/r/${afData.afiliado.codigo}')">Copiar Link</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>` : `<div style="text-align:center;padding:20px;color:var(--muted)">Nenhuma loja associada ainda.</div>`}`;
+}
+
+async function renderLinksData() {
+  const el = document.getElementById('tab-content');
+  if (!el || !afData) return;
+  const af = afData.afiliado;
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px;margin-bottom:14px">Os teus Links Mascarados</div>
+    <div style="margin-bottom:12px">
+      <div class="lbl">Link para a Plataforma DIGIMarket</div>
+      <div class="link-box">
+        <div class="link-text">${API}/r/${af.codigo}</div>
+        <button class="copy-btn" onclick="copyText('${API}/r/${af.codigo}')">Copiar</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">→ Redireciona para: <span style="color:var(--green)">is.gd/digimarket?ref=${af.codigo}</span></div>
+    </div>
+    <div class="div"></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Criar link para uma loja específica:</div>
+    <div class="row">
+      <input class="f1" id="link-slug" placeholder="Slug da loja (ex: minha-loja-abc123)">
+      <button class="btn btn-outline btn-sm" onclick="gerarLinkLoja()">Gerar Link</button>
+    </div>
+    <div id="link-loja-result" style="margin-top:10px"></div>
+  </div>
+  <div class="card card-blue">
+    <div style="font-size:12px;color:var(--blue);font-weight:600;margin-bottom:8px">💡 DICAS PARA MAIS CONVERSÕES</div>
+    <div style="font-size:13px;line-height:1.9;color:var(--muted)">
+      <div>• Partilha em grupos de empreendedorismo no WhatsApp e Telegram</div>
+      <div>• Cria conteúdo sobre e-commerce e inclui o teu link</div>
+      <div>• Partilha no teu perfil do Facebook, Instagram e LinkedIn</div>
+      <div>• O link mascara o domínio — parece mais profissional</div>
+    </div>
+  </div>`;
+}
+
+function rConfigTab() {
+  const af = afData?.afiliado || {};
+  document.getElementById('tab-content').innerHTML = `
+  <div class="card">
+    <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px;margin-bottom:14px">Configurações do Perfil</div>
+    <div class="fr"><div class="lbl">Nome</div><input id="cfg-nome" value="${af.nome||''}"></div>
+    <div class="fr">
+      <div class="lbl">Carteira TON para saques (UQ... ou EQ...)</div>
+      <input id="cfg-carteira" value="${af.carteira_ton||''}" placeholder="UQ...">
+    </div>
+    <div id="cfg-msg" style="font-size:12px;margin-bottom:10px"></div>
+    <button class="btn btn-green btn-sm" onclick="savePerfil()">Guardar Configurações</button>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// ACÇÕES
+// ════════════════════════════════════════════════════════
+async function associarLoja() {
+  const slug = document.getElementById('loja-slug')?.value;
+  if (!slug) return;
+  const r = await apiCall('POST', '/api/afiliado/loja/associar', { slug_loja: slug });
+  const msg = document.getElementById('loja-msg');
+  if (msg) msg.innerHTML = r.success
+    ? `<span style="color:var(--green)">✓ Associado a "${r.loja}"!</span>`
+    : `<span style="color:var(--red)">${r.error}</span>`;
+  if (r.success) { await loadAfiliado(); setTimeout(renderLojasData, 300); }
+}
+
+async function gerarLinkLoja() {
+  const slug = document.getElementById('link-slug')?.value;
+  const r = await apiCall('POST', '/api/afiliado/link', { destino_tipo: slug||'plataforma', slug });
+  const el = document.getElementById('link-loja-result');
+  if (el) el.innerHTML = r.success ? `
+    <div class="link-box">
+      <div class="link-text">${r.link}</div>
+      <button class="copy-btn" onclick="copyText('${r.link}')">Copiar</button>
+    </div>` : `<div style="color:var(--red)">${r.error}</div>`;
+}
+
+async function savePerfil() {
+  const nome = document.getElementById('cfg-nome')?.value;
+  const carteira_ton = document.getElementById('cfg-carteira')?.value;
+  const r = await apiCall('PUT', '/api/afiliado/perfil', { nome, carteira_ton });
+  const msg = document.getElementById('cfg-msg');
+  if (msg) msg.innerHTML = r.success
+    ? `<span style="color:var(--green)">✓ Guardado</span>`
+    : `<span style="color:var(--red)">${r.error}</span>`;
+  if (r.success) await loadAfiliado();
+}
+
+function openSaque() {
+  const af = afData?.afiliado;
+  const saldo = afData?.stats?.saldo_disponivel || 0;
+  document.getElementById('modal-ct').innerHTML = `
+  <div class="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2>💸 Sacar em TON</h2>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:18px">Saldo disponível: <strong style="color:var(--green)">${saldo.toFixed(6)} TON</strong></div>
+    <div class="fr">
+      <div class="lbl">Carteira de destino (TON)</div>
+      <input id="sw-carteira" value="${af?.carteira_ton||''}" placeholder="UQ... ou EQ...">
+    </div>
+    <div class="fr">
+      <div class="lbl">Método</div>
+      <select id="sw-metodo">
+        <option value="ton">Carteira TON externa</option>
+        <option value="xrocket">xRocket (Telegram)</option>
+      </select>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--muted)">Valor bruto</span><span>${saldo.toFixed(6)} TON</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--muted)">Taxa de rede</span><span>— 0.01 TON</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--border);padding-top:5px"><span>Valor líquido</span><span style="color:var(--green)">${(saldo-0.01).toFixed(6)} TON</span></div>
+    </div>
+    <div id="saque-msg" style="font-size:12px;margin-bottom:10px"></div>
+    <button class="btn btn-green" style="width:100%" onclick="doSaque()" ${saldo<=0.01?'disabled':''}>
+      Confirmar Saque
+    </button>
+  </div></div>`;
+}
+
+async function doSaque() {
+  const carteira = document.getElementById('sw-carteira')?.value;
+  const metodo = document.getElementById('sw-metodo')?.value;
+  if (!carteira) { document.getElementById('saque-msg').innerHTML='<span style="color:var(--red)">Carteira obrigatória</span>'; return; }
+  const btn = document.querySelector('#modal-ct .btn-green');
+  if (btn) { btn.disabled=true; btn.innerHTML='<div class="spin"></div> A processar...'; }
+  const r = await apiCall('POST', '/api/afiliado/saque', { carteira_destino:carteira, metodo });
+  const msg = document.getElementById('saque-msg');
+  if (r.success) {
+    if (msg) msg.innerHTML = r.manual
+      ? `<div class="alert alert-gold">⏳ ${r.message}</div>`
+      : `<div class="alert alert-green">✓ Enviado! TX: ${r.tx_hash?.substring(0,20)||'—'}</div>`;
+    await loadAfiliado();
+    setTimeout(closeModal, 2000);
+  } else {
+    if (msg) msg.innerHTML = `<span style="color:var(--red)">${r.error}</span>`;
+    if (btn) { btn.disabled=false; btn.textContent='Tentar novamente'; }
+  }
+}
+
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal-ct').innerHTML = '';
+}
+
+function copyLink(text, btnId) { copyText(text); const btn=document.getElementById(btnId); if(btn){btn.textContent='✓ Copiado!';setTimeout(()=>btn.textContent='Copiar',2000);} }
+function copyText(text) { navigator.clipboard?.writeText(text).catch(()=>{ const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el); }); }
+
+// ── Tab config handler ────────────────────────────────
+const origRender = render;
+window.render = function() {
+  origRender();
+  if (page==='dashboard' && dtab==='config') setTimeout(rConfigTab,50);
+};
+
+// ── Init ─────────────────────────────────────────────────────────────
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session?.user) {
+    user = session.user;
+    updateNav();
+    await loadAfiliado();
+    // Verificar se veio do link de registo
+    const params = new URLSearchParams(location.search);
+    if (params.get('action')==='register') goTo('register');
+    else goTo('dashboard');
+  } else {
+    goTo('hero');
+  }
+})();
+</script>
+</body>
+</html>
