@@ -18,15 +18,10 @@ CREATE TABLE IF NOT EXISTS planos (
   ordem         INT NOT NULL DEFAULT 0,
   ativo         BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em     TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+)
 
-INSERT INTO planos (id, nome, ton, max_produtos, max_imgs, suporte, ordem) VALUES
-  ('amador',        'Amador',        0.5,  1,  2, 'básico',        1),
-  ('simples',       'Simples',       1.5,  3,  3, 'básico',        2),
-  ('iniciante',     'Iniciante',     3.0,  5,  4, 'e-mail',        3),
-  ('basico',        'Básico',        5.0,  10, 5, 'e-mail',        4),
-  ('classico',      'Clássico',      8.0,  20, 6, 'prioritário',   5),
-  ('profissional',  'Profissional', 10.0,  50, 8, 'VIP 24/7',      6)
+INSERT INTO planos (id, nome, ton, max_produtos, max_imgs, suporte, ordem) VALUE          
+  ('iniciante',  'Profissional', 1.0,  50, 8, 'e-mail',      6)
 ON CONFLICT (id) DO NOTHING;
 
 -- ── LOJISTAS ─────────────────────────────────────────────────
